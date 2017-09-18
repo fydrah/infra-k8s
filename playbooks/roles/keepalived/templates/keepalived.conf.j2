@@ -1,0 +1,14 @@
+vrrp_instance vrrp_cluster {
+  interface {{ keepalived_communication_iface }}
+  state MASTER
+  virtual_router_id 1
+  priority {{ 100+play_hosts.index(inventory_hostname) }}
+  authentication {
+    auth_type PASS
+    auth_pass {{ keepalived_pass }}
+  }
+  virtual_ipaddress {
+    {{ keepalived_vip}}/32 dev {{ keepalived_iface }} label {{ keepalived_iface }}:0
+  }
+  notify_master /usr/local/bin/online-switch
+}

@@ -1,0 +1,34 @@
+---
+# tasks file for lvm
+
+- name: Install lvm2
+  apt:
+    name: lvm2
+    state: present
+
+- name: Ensure lvm2-lvmetad is started
+  systemd:
+    name: lvm2-lvmetad
+    state: started
+    enabled: true
+
+- name: Create volume group
+  lvg:
+    vg: "{{ lvm_vg.name }}"
+    pvs: "{{ lvm_vg.pvs }}"
+
+- name: Create logical volumes
+  lvol:
+    vg: "{{ lvm_lvs.vg }}"
+    lv: "{{ item.name }}"
+    size: "{{ item.size }}g"
+  with_items: "{{ lvm_lvs.lvs }}"
+
+- name: Create fstab entries
+  mount:
+    src: "/dev/{{ lvm_vg.name }}/{{ item.name }}"
+    name: "{{ item.mountpoint }}"
+    fstype: "{{ item.fs }}"
+    state: present
+  with_items: "{{ lvm_lvs.lvs }}"
+  when: item.mountpoint is defined and item.size is defined and item.fs is defined

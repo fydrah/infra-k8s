@@ -1,0 +1,21 @@
+---
+# tasks file for iptables-persitent
+
+- name: Remove stupid ufw
+  package:
+    name: ufw
+    state: absent
+
+- name: Install iptables-persistent
+  package:
+    name: iptables-persistent
+    state: present
+
+- name: Push iptables rules IPv4
+  template:
+    src: rules.v4.j2
+    dest: /tmp/rules.v4
+    owner: root
+    group: root
+    mode: 0644
+    validate: 'iptables-restore -t %s'

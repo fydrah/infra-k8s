@@ -1,0 +1,13 @@
+#!/usr/bin/env ansible-playbook
+
+- hosts: cluster
+  tasks:
+    - include_vars: conf/plain-vars.yml
+    - include_vars: conf/encrypt-vars.yml
+  tags:
+    - always
+
+- hosts: cluster
+  become: true
+  roles:
+    - lvm

@@ -1,0 +1,24 @@
+---
+# tasks file for rsyslog
+
+- name: Install rsyslog templates
+  copy:
+    src: "{{ item }}.conf"
+    dest: "/etc/rsyslog.d/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - 10-dockerd
+  notify:
+    - restart-rsyslog
+
+- name: Create logrotate config
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/logrotate.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - dockerd

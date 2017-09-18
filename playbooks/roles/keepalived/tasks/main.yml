@@ -1,0 +1,33 @@
+---
+# tasks file for keepalived
+
+- name: Install keepalived
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - keepalived
+    - python-pip
+
+- name: Install slumber
+  pip:
+    name: slumber
+    state: present
+
+- name: Add online script
+  template:
+    src: online-switch.j2
+    dest: /usr/local/bin/online-switch
+    mode: 0700
+    owner: root
+    group: root
+  notify: keepalived-restarted
+
+- name: Configure keepalived
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    mode: 0600
+    owner: root
+    group: root
+  notify: keepalived-restarted

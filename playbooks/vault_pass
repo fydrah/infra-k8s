@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo `pass dedibox/sd-91955/ansible_vault`

@@ -1,0 +1,24 @@
+---
+# defaults file for iptables-persitent
+iptables_input_policy: "ACCEPT"
+iptables_output_policy: "ACCEPT"
+iptables_forward_policy: "ACCEPT"
+iptables_other_chains: []
+iptables_input_rules: []
+# iptables_input_rules:
+# - type: empty
+#   target: MYCHAIN
+# - type: protocol
+#   port: 80
+#   proto: tcp
+#   target: ACCEPT
+# - type: ip
+#   ip: "84.9.9.9/26"
+#   target: ACCEPT
+# - type: state
+#   states:
+#   - RELATED
+#   - ESTABLISHED
+#   target: ACCEPT
+iptables_output_rules: []
+iptables_forward_rules: []

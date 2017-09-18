@@ -1,0 +1,28 @@
+---
+# tasks file for shell
+
+
+- name: Add source /etc/profile to root bashrc
+  blockinfile:
+    dest: "/root/.bashrc"
+    block: |
+      if [ -f /etc/profile ]; then
+        . /etc/profile
+      fi
+
+- name: Add source /etc/profile to user bashrc
+  become: "{{ shell_user }}"
+  blockinfile:
+    dest: "{{ shell_home }}/.bashrc"
+    block: |
+      if [ -f /etc/profile ]; then
+        . /etc/profile
+      fi
+
+- name: Create custom PS1
+  copy:
+    src: custom_ps1.sh
+    dest: /etc/profile.d/custom_ps1.sh
+    mode: 0644
+    owner: root
+    group: root

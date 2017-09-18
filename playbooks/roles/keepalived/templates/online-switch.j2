@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+import slumber, requests
+
+api_session = requests.session()
+api_session.headers['Authorization'] = 'Bearer {{ keepalived_online_authtoken }}'
+
+api = slumber.API('https://api.online.net/api/v1', session=api_session)
+
+# edit a failover IP
+api.server.failover.edit.post({
+    'source': '{{ keepalived_vip }}',
+    'destination': '{{ keepalived_default_ipv4 }}'
+})

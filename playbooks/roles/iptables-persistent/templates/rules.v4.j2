@@ -1,0 +1,22 @@
+*filter
+:INPUT {{ iptables_input_policy }}
+:FORWARD {{ iptables_forward_policy }}
+:OUTPUT {{ iptables_output_policy }}
+{% for chain in iptables_other_chains %}
+:{{ chain }} - [0:0]
+{% endfor %}
+-A INPUT -i lo -j ACCEPT
+{% for rule in iptables_input_rules %}
+{% if rule.type == "empty" %}
+-A INPUT -j {{ rule.target }}
+{% elif rule.type == "protocol" %}
+-A INPUT -p {{ rule.proto }} -m {{ rule.proto }} --dport {{ rule.port }} -j {{ rule.target }}
+{% elif rule.type == "ip" %}
+-A INPUT -s {{ rule.ip }} -j {{ rule.target }}
+{% endif %}
+{% endfor %}
+{% for rule in iptables_output_rules %}
+{% endfor %}
+{% for rule in iptables_forward_rules %}
+{% endfor %}
+COMMIT

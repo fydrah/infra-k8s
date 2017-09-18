@@ -1,0 +1,8 @@
+---
+# defaults file for keepalived
+keepalived_communication_iface: brcluster
+keepalived_pass: 8ae71c3d
+keepalived_iface: eno1
+keepalived_vip: 195.154.42.188
+keepalived_online_authtoken: "YOUR_TOKEN"
+keepalived_default_ipv4: "{{ ansible_default_ipv4.address }}"

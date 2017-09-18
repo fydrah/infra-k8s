@@ -1,0 +1,5 @@
+---
+# defaults file for shell
+
+shell_user: "ubuntu"
+shell_home: "/home/{{ shell_user }}"

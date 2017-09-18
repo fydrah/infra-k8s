@@ -1,0 +1,30 @@
+# glusterfs
+glusterfs_interface_fact: ansible_brcluster
+
+# privatenetwork
+privatenetwork_network: "10.20.30.0/24"
+privatenetwork_vxlanprefix: "vx-c"
+privatenetwork_ipsec: true
+privatenetwork_ipsec_psk: true
+
+# lvm
+lvm_vg:
+  pvs: "/dev/sda4"
+  name: "cluster"
+lvm_lvs:
+  vg: "{{ lvm_vg.name }}"
+  lvs:
+  - { name: gluster, size: 20 }
+  - { name: docker, mountpoint: /var/lib/docker, size: 20, fs: btrfs}
+  - { name: etcd, mountpoint: /var/lib/etcd, size: 20, fs: xfs}
+
+# shell
+shell_user: ubuntu
+
+# keepalived
+keepalived_vip: 195.154.42.188
+keepalived_iface: eno1
+keepalived_communication_iface: brcluster
+
+# iptables
+# Please see encrypted vars :)

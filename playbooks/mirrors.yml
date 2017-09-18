@@ -1,0 +1,18 @@
+#!/usr/bin/env ansible-playbook
+
+- hosts: cluster
+  pre_tasks:
+  - include_vars: conf/plain-vars.yml
+  - include_vars: conf/encrypt-vars.yml
+  tasks:
+  - name: Add mirrors
+    copy:
+      src: conf/xenial-mirrors
+      dest: /etc/apt/sources.list
+      owner: root
+      group: root
+      mode: 0644
+  - name: Update cache
+    apt:
+      name:
+      update_cache: true
