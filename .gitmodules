@@ -1,6 +1,6 @@
 [submodule "kubespray"]
 	path = kubespray
-	url = ./kubespray/
+	url = git@github.com:Flav35/kubespray.git
 [submodule "heketi"]
 	path = heketi
-	url = ./heketi/
+	url = git@github.com:Flav35/kubespray.git
