@@ -3,4 +3,4 @@
 	url = git@github.com:Flav35/kubespray.git
 [submodule "heketi"]
 	path = heketi
-	url = git@github.com:Flav35/kubespray.git
+	url = git@github.com:Flav35/heketi.git
