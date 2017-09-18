@@ -1,3 +1,6 @@
 [submodule "kubespray"]
 	path = kubespray
 	url = ./kubespray/
+[submodule "heketi"]
+	path = heketi
+	url = ./heketi/
