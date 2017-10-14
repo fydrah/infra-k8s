@@ -16,3 +16,12 @@
     apt:
       name:
       update_cache: true
+  - name: Hold docker-engine
+    dpkg_selections:
+      name: docker-engine
+      selection: hold
+  roles:
+    - role: unattended-upgrades
+      unattended_upgrades_blacklist:
+      - docker-engine
+      - docker-ce
