@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: etherpad
+  namespace: etherpad
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+    ingress.kubernetes.io/affinity: "cookie"
+    ingress.kubernetes.io/session-cookie-name: "etherpad-session"
+    ingress.kubernetes.io/session-cookie-hash: "sha1"
+spec:
+  rules:
+    - host: pad.k8s.fhardy.fr
+      http:
+        paths:
+          - backend:
+              serviceName: etherpad
+              servicePort: 80
+            path: /
+  tls:
+    - hosts:
+        - pad.k8s.fhardy.fr
+      secretName: etherpad-tls
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: etherpad
+  labels:
+    app: etherpad
+    type: web
+  namespace: etherpad
+spec:
+  ports:
+  - port: 80
+    targetPort: 9001
+  selector:
+    app: etherpad
+    type: web
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql
+  labels:
+    app: etherpad
+    type: sql
+  namespace: etherpad
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: etherpad
+    type: sql

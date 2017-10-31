@@ -1,0 +1,134 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: etherpad
+    type: web
+  name: etherpad
+  namespace: etherpad
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etherpad
+        type: web
+    spec:
+      containers:
+      - name: etherpad
+        image: fhardy/etherpad-lite:latest
+        ports:
+        - containerPort: 9001
+          protocol: TCP
+        env:
+          - name: ETHERPAD_TITLE
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_TITLE
+          - name: ETHERPAD_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_PORT
+          - name: ETHERPAD_DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_DB_HOST
+          - name: ETHERPAD_DB_USER
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_DB_USER
+          - name: ETHERPAD_DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_DB_NAME
+          - name: ETHERPAD_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: etherpad
+                key: ETHERPAD_DB_PASSWORD
+          - name: ETHERPAD_ADMIN_USER
+            valueFrom:
+              configMapKeyRef:
+                name: etherpad
+                key: ETHERPAD_ADMIN_USER
+          - name: ETHERPAD_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: etherpad
+                key: ETHERPAD_ADMIN_PASSWORD
+          - name: ETHERPAD_SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: etherpad
+                key: ETHERPAD_SESSION_KEY
+        volumeMounts:
+        - mountPath: "/etherpad-lite/node_modules"
+          name: etherpad-plugins
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9001
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+      volumes:
+      - name: etherpad-plugins
+        persistentVolumeClaim:
+          claimName: etherpad-plugins
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: etherpad
+    type: web
+  namespace: etherpad
+spec:
+  serviceName: mysql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etherpad
+        type: sql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mysql
+        image: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_USER
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_NAME
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_PASSWORD
+        volumeMounts:
+        - name: etherpad-mysql
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: etherpad-mysql
+        persistentVolumeClaim:
+          claimName: etherpad-mysql

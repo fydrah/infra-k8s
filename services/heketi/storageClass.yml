@@ -1,0 +1,15 @@
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+  name: default
+  annotations:
+    storageclass.kubernetes.io/is-default-class: 'true'
+provisioner: kubernetes.io/glusterfs
+parameters:
+  clusterid: "be3dd04cbb6f5c6e1b3453ef05ed33bf"
+# kubectl get svc -n heketi # does not resolv internal dns...
+  resturl: "http://10.233.42.13:8080"
+  restuser: "CAN BE ANYTHING"
+  restuserkey: "CAN BE ANYTHING"
+  volumetype: "replicate:2"
+reclaimPolicy: Retain

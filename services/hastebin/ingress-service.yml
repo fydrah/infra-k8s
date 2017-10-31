@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hastebin
+  namespace: hastebin
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+spec:
+  rules:
+    - host: haste.k8s.fhardy.fr
+      http:
+        paths:
+          - backend:
+              serviceName: hastebin
+              servicePort: 80
+            path: /
+  tls:
+    - hosts:
+        - haste.k8s.fhardy.fr
+      secretName: haste-tls
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: hastebin
+  name: hastebin
+  namespace: hastebin
+spec:
+  ports:
+  - port: 80
+    targetPort: 7777
+  selector:
+    app: hastebin

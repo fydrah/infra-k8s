@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etherpad
+  namespace: etherpad
+data:
+    ETHERPAD_TITLE: "fhardy Etherpad-Lite"
+    ETHERPAD_PORT: "9001"
+    ETHERPAD_DB_HOST: "mysql"
+    ETHERPAD_DB_USER: "etherpad"
+    ETHERPAD_DB_NAME: "etherpad"
+    ETHERPAD_ADMIN_USER: "admin"

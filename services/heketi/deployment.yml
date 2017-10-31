@@ -1,0 +1,55 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: heketi
+  name: heketi
+  namespace: heketi
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: heketi
+    spec:
+      containers:
+      - name: heketi
+        image: fhardy/heketi:latest
+        imagePullPolicy: Always
+        env:
+        - name: HEKETI_FSTAB
+          value: "/var/lib/heketi/fstab"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: heketi-config
+          mountPath: "/etc/heketi"
+        - name: heketi-private-key
+          mountPath: "/root/.ssh"
+          readOnly: true
+        - name: heketi-storage
+          mountPath: "/var/lib/heketi"
+        readinessProbe:
+          timeoutSeconds: 3
+          initialDelaySeconds: 3
+          httpGet:
+            path: "/hello"
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 3
+          initialDelaySeconds: 30
+          httpGet:
+            path: "/hello"
+            port: 8080
+      volumes:
+      - name: heketi-private-key
+        secret:
+          secretName: priv-key
+          defaultMode: 0600
+      - name: heketi-config
+        configMap:
+          name: config
+      - name: "heketi-storage"
+        glusterfs:
+          endpoints: "heketi-storage-endpoints"
+          path: heketidbstorage

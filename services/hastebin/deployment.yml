@@ -1,0 +1,33 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: hastebin
+  name: hastebin
+  namespace: hastebin
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: hastebin
+    spec:
+      containers:
+      - name: hastebin
+        image: ogarcia/haste-server
+        ports:
+        - containerPort: 7777
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 7777
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        volumeMounts:
+        - mountPath: "/srv/haste/data"
+          name: hastebin-vol
+      volumes:
+        - name: hastebin-vol
+          persistentVolumeClaim:
+            claimName: hastebin

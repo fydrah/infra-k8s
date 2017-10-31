@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: share
+  namespace: share
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+spec:
+  rules:
+    - host: share.k8s.fhardy.fr
+      http:
+        paths:
+          - backend:
+              serviceName: share
+              servicePort: 80
+            path: /
+  tls:
+    - hosts:
+        - share.k8s.fhardy.fr
+      secretName: share-tls
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: share
+  name: share
+  namespace: share
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: share

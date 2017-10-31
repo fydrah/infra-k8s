@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-apiserver-cm
+  namespace: kube-system
+data:
+  8443: "default/kubernetes:443"

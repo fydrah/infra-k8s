@@ -1,0 +1,26 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: drawio
+  name: drawio
+  namespace: drawio
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: drawio
+    spec:
+      containers:
+      - name: drawio
+        image: fhardy/draw.io:latest
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
