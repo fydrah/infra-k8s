@@ -14,7 +14,7 @@ lvm_vg:
 lvm_lvs:
   vg: "{{ lvm_vg.name }}"
   lvs:
-  - { name: gluster, size: 20 }
+  - { name: gluster, size: 40 }
   - { name: docker, mountpoint: /var/lib/docker, size: 20, fs: btrfs}
   - { name: etcd, mountpoint: /var/lib/etcd, size: 20, fs: xfs}
 
