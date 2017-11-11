@@ -17,6 +17,7 @@ lvm_lvs:
   - { name: gluster, size: 40 }
   - { name: docker, mountpoint: /var/lib/docker, size: 20, fs: btrfs}
   - { name: etcd, mountpoint: /var/lib/etcd, size: 20, fs: xfs}
+  - { name: es, mountpoint: /var/lib/elasticsearch, size: 10, fs: xfs}
 
 # shell
 shell_user: ubuntu
