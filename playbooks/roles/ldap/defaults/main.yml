@@ -1,0 +1,54 @@
+---
+# defaults file for ldap
+
+### Organisation setup ###
+
+# Organisation name. Defaults to Example Inc.
+ldap_organisation: "Example Inc."
+# Ldap domain. Defaults to example.org
+ldap_domain: "example.org"
+# Ldap base DN. If empty automatically set from LDAP_DOMAIN value. Defaults to (empty)
+ldap_base_dn: "dc=example,dc=org"
+# Ldap Admin password. Defaults to admin
+ldap_admin_password: "admin"
+# Ldap Config password. Defaults to config
+ldap_config_password: "config"
+# Add a read only user. Defaults to false
+ldap_readonly_user: true
+# Read only user username. Defaults to readonly
+ldap_readonly_user_username: "readonly"
+# Read only user password. Defaults to readonly
+ldap_readonly_user_password: "readonly"
+
+### Backend ###
+# Ldap backend. Defaults to hdb (In comming versions v1.2.x default will be mdb)
+ldap_backend: "hdb"
+
+### TLS options ###
+# Add openldap TLS capabilities. Can't be removed once set to true. Defaults to true.
+ldap_tls: true
+# Ldap ssl certificate filename. Defaults to ldap.crt
+ldap_tls_crt_filename: "/etc/ssl/ldap/ssl/{{ ansible_hostname }}.crt"
+# Ldap ssl certificate private key filename. Defaults to ldap.key
+ldap_tls_key_filename: "/etc/ssl/ldap/ssl/{{ ansible_hostname }}.key"
+# Ldap ssl CA certificate filename. Defaults to ca.crt
+ldap_tls_ca_crt_filename: "/etc/ssl/ldap/ssl/ca.crt"
+# Enforce TLS but except ldapi connections. Can't be disabled once set to true. Defaults to false.
+ldap_tls_enforce: true
+# TLS verify client. Defaults to demand
+ldap_tls_verify_client: "never"
+
+### Replication ###
+# Add openldap replication capabilities. Defaults to false
+ldap_replication: false
+ldap_replication_hosts: []
+ldap_replication_config_syncprov: 'binddn="cn=admin,cn=config" bindmethod=simple credentials=$LDAP_CONFIG_PASSWORD searchbase="cn=config" type=refreshAndPersist retry="60 +" timeout=1 starttls=critical'
+ldap_replication_db_syncprov: 'binddn="cn=admin,$LDAP_BASE_DN" bindmethod=simple credentials=$LDAP_ADMIN_PASSWORD searchbase="$LDAP_BASE_DN" type=refreshAndPersist interval=00:00:00:10 retry="60 +" timeout=1 starttls=critical'
+
+### Others ###
+# Do not change the ldap config. Defaults to false
+ldap_keep_existing_config: false
+# delete config folder after setup. Defaults to true
+ldap_remove_config_after_setup: true
+# Ldap DNS common
+ldap_common_dns: "example.org"

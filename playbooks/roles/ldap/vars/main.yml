@@ -1,0 +1,6 @@
+---
+# vars file for ldap
+ldap_directories:
+  - /var/lib/ldap
+  - /etc/ssl/ldap/ssl
+  - /etc/ldap/slapd.d

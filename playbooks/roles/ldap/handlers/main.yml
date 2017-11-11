@@ -1,0 +1,12 @@
+---
+# handlers file for ldap
+
+- name: daemon-reload
+  systemd:
+    daemon_reload: true
+
+- name: ldap-restarted
+  systemd:
+    name: ldap
+    state: restarted
+    enabled: true

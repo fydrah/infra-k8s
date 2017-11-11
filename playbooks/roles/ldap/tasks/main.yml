@@ -1,0 +1,141 @@
+---
+# tasks file for ldap
+
+- name: Check docker is started
+  systemd:
+    name: docker
+    state: started
+  tags:
+    - always
+
+- name: Create container name
+  set_fact:
+    ldap_container_name: "ldap{{ play_hosts.index(inventory_hostname) }}"
+  tags:
+    - always
+
+- name: Create ldap directories
+  file:
+    state: directory
+    owner: root
+    group: root
+    dest: "{{ item }}"
+  with_items: "{{ ldap_directories }}"
+
+- name: Check if certs exist
+  stat:
+    path: "/etc/ssl/ldap/ssl/{{ ansible_hostname }}.crt"
+  register: cert_file
+
+- name: Generate certs
+  block:
+  - name: Create conf file
+    template:
+      src: ldap.cnf.j2
+      dest: "/etc/ssl/ldap/ssl/{{ ansible_hostname }}.cnf"
+    delegate_to: "{{ groups.ldap[0] }}"
+
+  - name: Gen ca key
+    shell: openssl genrsa -out ssl/ca.key 2048
+    args:
+      chdir: "/etc/ssl/ldap"
+    when: inventory_hostname == groups.ldap[0]
+
+  - name: Gen ca cert
+    shell: "openssl req -x509 -new -nodes -key ssl/ca.key -days 3650 -out ssl/ca.crt -subj '/CN=ldap-ca'"
+    args:
+      chdir: "/etc/ssl/ldap"
+    when: inventory_hostname == groups.ldap[0]
+
+  - name: Gen server key
+    shell: "openssl genrsa -out ssl/{{ ansible_hostname }}.key 2048"
+    args:
+      chdir: "/etc/ssl/ldap"
+    delegate_to: "{{ groups.ldap[0] }}"
+
+  - name: Gen server csr
+    shell: "openssl req -new -key ssl/{{ ansible_hostname }}.key -out ssl/{{ ansible_hostname }}.csr -subj '/CN=ldap-ca' -config ssl/{{ ansible_hostname }}.cnf"
+    args:
+      chdir: "/etc/ssl/ldap"
+    delegate_to: "{{ groups.ldap[0] }}"
+
+  - name: Gen server cert signed
+    shell: "openssl x509 -req -in ssl/{{ ansible_hostname }}.csr -CA ssl/ca.crt -CAkey ssl/ca.key -CAcreateserial -out ssl/{{ ansible_hostname }}.crt -days 3650 -extensions v3_req -extfile ssl/{{ ansible_hostname }}.cnf"
+    args:
+      chdir: "/etc/ssl/ldap"
+    delegate_to: "{{ groups.ldap[0] }}"
+
+  when: not cert_file.stat.exists
+
+- name: Fetch CA
+  fetch:
+    src: "/etc/ssl/ldap/ssl/{{ item }}"
+    dest: "ldap-ssl/{{ item }}"
+    flat: true
+  with_items:
+    - ca.crt
+    - ca.key
+  when: inventory_hostname == groups.ldap[0]
+
+- name: Fetch certs
+  fetch:
+    src: "/etc/ssl/ldap/ssl/{{ item }}"
+    dest: "ldap-ssl/{{ item }}"
+    flat: true
+  with_items:
+    - "{{ ansible_hostname }}.cfg"
+    - "{{ ansible_hostname }}.csr"
+    - "{{ ansible_hostname }}.crt"
+    - "{{ ansible_hostname }}.key"
+  delegate_to: "{{ groups.ldap[0] }}"
+
+- name: Dispatch certificates
+  copy:
+    src: "ldap-ssl/{{ item }}"
+    dest: "/etc/ssl/ldap/ssl/{{ item }}"
+  with_items:
+    - "{{ ansible_hostname }}.crt"
+    - "{{ ansible_hostname }}.key"
+    - "ca.crt"
+
+- name: Deploy configuration
+  template:
+    src: ldap.env.j2
+    dest: /etc/ldap.env
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - ldap-restarted
+  tags:
+    - config
+
+- name: Deploy ldap binary file
+  template:
+    src: ldap.j2
+    dest: /usr/local/bin/ldap
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - ldap-restarted
+  tags:
+    - config
+
+- name: Deploy openldap systemd unit file
+  template:
+    src: ldap.service.j2
+    dest: /etc/systemd/system/ldap.service
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - daemon-reload
+    - ldap-restarted
+  tags:
+    - config
+
+- name: Start or restart ldap service
+  meta: flush_handlers
+  tags:
+    - config
