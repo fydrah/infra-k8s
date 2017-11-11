@@ -1,6 +1,9 @@
 [glusterfs:children]
 cluster
 
+[ldap:children]
+cluster
+
 [cluster]
 fydrah-c0
 fydrah-c1

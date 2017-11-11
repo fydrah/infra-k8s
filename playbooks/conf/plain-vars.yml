@@ -28,3 +28,16 @@ keepalived_communication_iface: brcluster
 
 # iptables
 # Please see encrypted vars :)
+
+# ldap
+ldap_organisation: "Fydrah Cluster"
+ldap_domain: "cluster.local"
+ldap_base_dn: "dc=cluster,dc=local"
+ldap_readonly_user: true
+ldap_tls: true
+ldap_tls_crt_filename: "{{ ansible_fqdn }}.crt"
+ldap_tls_key_filename: "{{ ansible_fqdn }}.key"
+ldap_tls_ca_crt_filename: "ca.crt"
+ldap_replication: true
+ldap_common_dns: ldap.k8s.fhardy.fr
+ldap_replication_hosts: ['ldap://fydrah-c0.cluster.local','ldap://fydrah-c1.cluster.local','ldap://fydrah-c2.cluster.local']
