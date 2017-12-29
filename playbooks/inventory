@@ -4,6 +4,9 @@ cluster
 [ldap:children]
 cluster
 
+[k8s-master:children]
+cluster
+
 [cluster]
 fydrah-c0
 fydrah-c1
