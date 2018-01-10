@@ -1,5 +1,5 @@
 kind: Deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 metadata:
   labels:
     app: etherpad
@@ -8,6 +8,12 @@ metadata:
   namespace: etherpad
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: etherpad
+      type: web
   template:
     metadata:
       labels:
@@ -75,60 +81,13 @@ spec:
             port: 9001
           initialDelaySeconds: 30
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9001
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
       volumes:
       - name: etherpad-plugins
         persistentVolumeClaim:
           claimName: etherpad-plugins
----
-apiVersion: apps/v1beta1
-kind: StatefulSet
-metadata:
-  name: mysql
-  labels:
-    app: etherpad
-    type: web
-  namespace: etherpad
-spec:
-  serviceName: mysql
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: etherpad
-        type: sql
-    spec:
-      terminationGracePeriodSeconds: 10
-      containers:
-      - name: mysql
-        image: mysql
-        ports:
-        - containerPort: 3306
-          name: mysql
-        env:
-        - name: MYSQL_USER
-          valueFrom:
-            configMapKeyRef:
-              name: etherpad
-              key: ETHERPAD_DB_USER
-        - name: MYSQL_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              name: etherpad
-              key: ETHERPAD_DB_NAME
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql
-              key: MYSQL_ROOT_PASSWORD
-        - name: MYSQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: etherpad
-              key: ETHERPAD_DB_PASSWORD
-        volumeMounts:
-        - name: etherpad-mysql
-          mountPath: /var/lib/mysql
-      volumes:
-      - name: etherpad-mysql
-        persistentVolumeClaim:
-          claimName: etherpad-mysql

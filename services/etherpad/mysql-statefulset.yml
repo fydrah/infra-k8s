@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: etherpad
+    type: sql
+  namespace: etherpad
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etherpad
+      type: sql
+  template:
+    metadata:
+      labels:
+        app: etherpad
+        type: sql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        ports:
+        - containerPort: 3306
+          name: mysql
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_USER
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_NAME
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: etherpad
+              key: ETHERPAD_DB_PASSWORD
+        args:
+        - "--ignore-db-dir=lost+found"
+        volumeMounts:
+        - name: etherpad-mysql
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: etherpad-mysql
+        persistentVolumeClaim:
+          claimName: etherpad-mysql
