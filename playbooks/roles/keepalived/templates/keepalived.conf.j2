@@ -1,11 +1,19 @@
 vrrp_instance vrrp_cluster {
-  interface {{ keepalived_communication_iface }}
-  state MASTER
+  interface eth0
+  state BACKUP
   virtual_router_id 1
   priority {{ 100+play_hosts.index(inventory_hostname) }}
   authentication {
     auth_type PASS
     auth_pass {{ keepalived_pass }}
+  }
+  unicast_src_ip {{ ansible_default_ipv4.address }}
+  unicast_peer {
+{% for host in play_hosts %}
+{% if host != inventory_hostname %}
+    {{ hostvars[host].ansible_default_ipv4.address }}
+{% endif %}
+{% endfor %}
   }
   virtual_ipaddress {
     {{ keepalived_vip}}/32 dev {{ keepalived_iface }} label {{ keepalived_iface }}:0

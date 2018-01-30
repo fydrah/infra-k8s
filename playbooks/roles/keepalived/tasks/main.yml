@@ -2,12 +2,22 @@
 # tasks file for keepalived
 
 - name: Install keepalived
-  apt:
+  package:
     name: "{{ item }}"
     state: present
   with_items:
     - keepalived
     - python-pip
+  when: ansible_os_family == 'Debian'
+
+- name: Install keepalived
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - keepalived
+    - python2-pip
+  when: ansible_os_family == 'RedHat'
 
 - name: Install slumber
   pip:
@@ -22,6 +32,14 @@
     owner: root
     group: root
   notify: keepalived-restarted
+
+- name: Push heketi state script
+  copy:
+    src: heketi_keepalived.sh
+    dest: /usr/local/bin/
+    mode: 0700
+    owner: root
+    group: root
 
 - name: Configure keepalived
   template:
