@@ -1,16 +1,16 @@
 ---
 # tasks file for lvm
 
-- name: Install lvm2
-  apt:
-    name: lvm2
-    state: present
-
-- name: Ensure lvm2-lvmetad is started
-  systemd:
-    name: lvm2-lvmetad
-    state: started
-    enabled: true
+#- name: Install lvm2
+#  package:
+#    name: lvm2
+#    state: present
+#
+#- name: Ensure lvm2-lvmetad is started
+#  systemd:
+#    name: lvm2-lvmetad
+#    state: started
+#    enabled: true
 
 - name: Create volume group
   lvg:
