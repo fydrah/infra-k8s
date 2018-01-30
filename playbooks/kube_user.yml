@@ -1,0 +1,9 @@
+#!/usr/bin/env ansible-playbook
+
+- hosts: k8s-master[0]
+  roles:
+    - role: kube-user
+      kube_users:
+      - fydrah-admin
+      kube_user_groups:
+      - "system:masters"
