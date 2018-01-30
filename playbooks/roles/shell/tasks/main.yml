@@ -26,3 +26,11 @@
     mode: 0644
     owner: root
     group: root
+
+- name: Create custom aliases
+  copy:
+    src: custom_aliases.sh
+    dest: /etc/profile.d/custom_aliases.sh
+    mode: 0644
+    owner: root
+    group: root
