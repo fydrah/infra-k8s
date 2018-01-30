@@ -9,22 +9,22 @@ privatenetwork_ipsec_psk: true
 
 # lvm
 lvm_vg:
-  pvs: "/dev/sda4"
+  pvs: "/dev/sda3"
   name: "cluster"
 lvm_lvs:
   vg: "{{ lvm_vg.name }}"
   lvs:
-  - { name: gluster, size: 40 }
-  - { name: docker, mountpoint: /var/lib/docker, size: 20, fs: btrfs}
-  - { name: etcd, mountpoint: /var/lib/etcd, size: 20, fs: xfs}
-  - { name: es, mountpoint: /var/lib/elasticsearch, size: 10, fs: xfs}
+  - {name: docker, mountpoint: /var/lib/docker, size: 20, fs: xfs}
+  - {name: etcd, mountpoint: /var/lib/etcd, size: 2, fs: xfs}
+  - {name: rook, mountpoint: /var/lib/rook, size: 40, fs: xfs}
+  - {name: osd, mountpoint: /var/lib/osd, size: 40, fs: xfs}
 
 # shell
-shell_user: ubuntu
+shell_user: centos
 
 # keepalived
 keepalived_vip: 195.154.42.188
-keepalived_iface: eno1
+keepalived_iface: eth0
 keepalived_communication_iface: brcluster
 
 # iptables
@@ -42,3 +42,11 @@ ldap_tls_ca_crt_filename: "ca.crt"
 ldap_replication: true
 ldap_common_dns: ldap.k8s.fhardy.fr
 ldap_replication_hosts: ['ldap://fydrah-c0.cluster.local','ldap://fydrah-c1.cluster.local','ldap://fydrah-c2.cluster.local']
+
+# Heketi configuration
+heketi_version: v5.0.0
+heketi_glusterfs_group: glusterfs
+heketi_setup_useauth: true
+heketi_setup_sudo: true
+heketi_setup_sshuser: "centos"
+heketi_port: 28080
