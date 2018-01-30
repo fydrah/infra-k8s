@@ -4,3 +4,6 @@
 [submodule "heketi"]
 	path = heketi
 	url = git@github.com:Flav35/heketi.git
+[submodule "docker-monero"]
+	path = docker-monero
+	url = git@github.com:Flav35/docker-monero.git
