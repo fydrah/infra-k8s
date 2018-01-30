@@ -6,16 +6,50 @@
     name: ufw
     state: absent
 
-- name: Install iptables-persistent
-  package:
-    name: iptables-persistent
-    state: present
+- block:
+  - name: Install iptables-persistent
+    apt:
+      name: iptables-persistent
+      state: present
 
-- name: Push iptables rules IPv4
-  template:
-    src: rules.v4.j2
-    dest: /tmp/rules.v4
-    owner: root
-    group: root
-    mode: 0644
-    validate: 'iptables-restore -t %s'
+  - name: Push iptables rules IPv4
+    template:
+      src: rules.v4.j2
+      dest: /etc/iptables.d/rules.v4
+      owner: root
+      group: root
+      mode: 0600
+      validate: 'iptables-restore -t %s'
+
+  when: ansible_os_family == "Debian"
+
+- block:
+  - name: Install iptables services
+    yum:
+      name: iptables-services
+      state: present
+
+  - name: Push iptables rules IPv4
+    template:
+      src: rules.v4.j2
+      dest: /etc/sysconfig/iptables
+      owner: root
+      group: root
+      mode: 0600
+      validate: 'iptables-restore -t %s'
+    notify: iptables-restarted
+
+  - name: Disable firewalld
+    service:
+      name: firewalld
+      state: stopped
+      enabled: false
+
+  - name: Start iptables
+    service:
+      name: iptables
+      state: started
+      enabled: true
+
+  when: ansible_os_family == "RedHat"
+

@@ -1,10 +1,12 @@
 *filter
-:INPUT {{ iptables_input_policy }}
-:FORWARD {{ iptables_forward_policy }}
-:OUTPUT {{ iptables_output_policy }}
+:INPUT {{ iptables_input_policy }} [0:0]
+:FORWARD {{ iptables_forward_policy }} [0:0]
+:OUTPUT {{ iptables_output_policy }} [0:0]
 {% for chain in iptables_other_chains %}
 :{{ chain }} - [0:0]
 {% endfor %}
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
 -A INPUT -i lo -j ACCEPT
 {% for rule in iptables_input_rules %}
 {% if rule.type == "empty" %}
@@ -19,4 +21,5 @@
 {% endfor %}
 {% for rule in iptables_forward_rules %}
 {% endfor %}
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
 COMMIT

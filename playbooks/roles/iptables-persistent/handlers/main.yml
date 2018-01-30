@@ -1,2 +1,7 @@
 ---
 # handlers file for iptables-persitent
+- name: iptables-restarted
+  systemd:
+    name: iptables
+    state: restarted
+    enabled: true
