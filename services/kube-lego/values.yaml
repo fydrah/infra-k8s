@@ -35,7 +35,7 @@ config:
 ##
 image:
   repository: jetstack/kube-lego
-  tag: 0.1.5
+  tag: canary
   pullPolicy: IfNotPresent
 
 ## Node labels for pod assignment
