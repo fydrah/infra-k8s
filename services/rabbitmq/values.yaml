@@ -1,0 +1,39 @@
+## Bitnami RabbitMQ image version
+## ref: https://hub.docker.com/r/bitnami/rabbitmq/tags/
+##
+image: kuberstack/kubernetes-rabbitmq-autocluster:latest
+
+replicaCount: 3
+
+rbac:
+  create: true
+
+## Specify a imagePullPolicy
+## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'
+#
+# imagePullPolicy:
+
+rabbitmqUsername: user
+# rabbitmqPassword:
+rabbitmqErlangCookie: Brep6sjmldJQ6EgwNiAC2rZ7TxnztBmJ
+# rabbitmqServerAdditionalERLArgs: "-rabbit log_levels [{connection,error}]"
+rabbitmqNodePort: 5672
+rabbitmqNodeType: stats
+rabbitmqNodeName: rabbit
+rabbitmqVhost: /
+rabbitmqManagerPort: 15672
+rabbitmqDiskFreeLimit: '"6GiB"'
+
+## Kubernetes service type
+serviceType: ClusterIP
+
+persistence:
+  enabled: false
+
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m

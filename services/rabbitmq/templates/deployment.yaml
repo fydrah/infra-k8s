@@ -1,0 +1,90 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "rabbitmq.fullname" . }}
+  labels:
+    app: {{ template "rabbitmq.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "rabbitmq.fullname" . }}
+    spec:
+      serviceAccountName: {{ if .Values.rbac.create }}{{ template "rabbitmq.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
+      containers:
+      - name: {{ template "rabbitmq.fullname" . }}
+        image: "{{ .Values.image }}"
+        imagePullPolicy: {{ default "" .Values.imagePullPolicy | quote }}
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: {{ default "" .Values.rabbitmqUsername | quote }}
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "rabbitmq.fullname" . }}
+              key: rabbitmq-password
+        - name: RABBITMQ_ERLANG_COOKIE
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "rabbitmq.fullname" . }}
+              key: rabbitmq-erlang-cookie
+        - name: HOSTNAME
+          valueFrom:
+           fieldRef:
+            fieldPath: status.podIP
+        - name: MY_POD_IP
+          valueFrom:
+           fieldRef:
+            fieldPath: status.podIP
+        - name: AUTOCLUSTER_CLEANUP
+          value: "true"
+        - name: CLEANUP_INTERVAL
+          value: "60"
+        - name: CLEANUP_WARN_ONLY
+          value: "false"
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: {{ default "/" .Values.rabbitmqVhost | quote }}
+        - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+          value: {{ default "" .Values.rabbitmqServerAdditionalERLArgs | quote }}
+        ports:
+        - name: epmd
+          containerPort: 4369
+        - name: amqp
+          containerPort: 5672
+        - name: dist
+          containerPort: 5672
+        - name: stats
+          containerPort: 15672
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmqctl
+            - status
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmqctl
+            - status
+          initialDelaySeconds: 1
+          timeoutSeconds: 3
+          periodSeconds: 1
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/rabbitmq
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+      volumes:
+      - name: data
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "rabbitmq.fullname" .) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end -}}
