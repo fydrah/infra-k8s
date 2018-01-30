@@ -5,23 +5,37 @@
   - include_vars: conf/plain-vars.yml
   - include_vars: conf/encrypt-vars.yml
   tasks:
-  - name: Add mirrors
-    copy:
-      src: conf/xenial-mirrors
-      dest: /etc/apt/sources.list
-      owner: root
-      group: root
-      mode: 0644
-  - name: Update cache
-    apt:
-      name:
-      update_cache: true
-  - name: Hold docker-engine
-    dpkg_selections:
-      name: docker-engine
-      selection: hold
+  # Debian
+  - block:
+    - name: Add mirrors
+      copy:
+        src: conf/xenial-mirrors
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: 0644
+    - name: Update cache
+      apt:
+        name:
+        update_cache: true
+    - name: Hold docker-engine
+      dpkg_selections:
+        name: docker-engine
+        selection: hold
+    when: ansible_os_family == "Debian"
+  # RedHat
+  - block:
+    - name: Version lock
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+      - yum-plugin-versionlock
+      - epel-release
+    when: ansible_os_family == "RedHat"
   roles:
     - role: unattended-upgrades
       unattended_upgrades_blacklist:
       - docker-engine
       - docker-ce
+      when: ansible_os_family == "Debian"
