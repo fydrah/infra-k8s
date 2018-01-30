@@ -1,0 +1,12 @@
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+
+- name: restart heketi
+  service:
+    name: heketi
+    state: restarted
+
+- name: restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted

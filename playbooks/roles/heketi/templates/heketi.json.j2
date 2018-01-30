@@ -1,0 +1,28 @@
+{
+  "port": "{{ heketi_port }}",
+
+  "use_auth": {{ heketi_setup_useauth | lower }},
+
+  "jwt": {
+    "admin": {
+      "key": "{{ heketi_setup_adminjwt }}"
+    },
+    "user": {
+      "key": "{{ heketi_setup_userjwt }}"
+    }
+  },
+
+  "glusterfs": {
+    "executor": "ssh",
+
+    "sshexec": {
+      "keyfile": "/home/heketi/.ssh/id_rsa",
+      "user": "{{ heketi_setup_sshuser }}",
+      "sudo": {{ heketi_setup_sudo | lower }}
+    },
+
+    "db": "/var/lib/heketi/db/heketi.db",
+
+    "loglevel" : "info"
+  }
+}

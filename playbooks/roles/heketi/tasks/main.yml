@@ -1,0 +1,211 @@
+- include: "{{ ansible_os_family }}.yml"
+
+- name: Check if Heketi is already installed
+  stat:
+    path: "/usr/bin/{{ item }}"
+  with_items:
+    - heketi
+    - heketi-cli
+  register: st
+
+- block:
+
+  - name: Create temporary directory
+    file:
+      path: /tmp/heketi
+      state: directory
+
+  - name: Download and untar Heketi files
+    unarchive:
+      src: "{{ heketi_download_url }}"
+      dest: /tmp/heketi
+      remote_src: true
+
+  - name: Copy binaries from temporary path
+    copy:
+      src: "/tmp/heketi/heketi/{{ item }}"
+      dest: "/usr/bin/{{ item }}"
+      mode: 0755
+      owner: root
+      group: root
+      remote_src: true
+    with_items:
+      - heketi
+      - heketi-cli
+
+  - name: Delete temporary folder
+    file:
+      path: /tmp/heketi
+      state: absent
+
+  when: "not (st.results[0].stat.exists or st.results[1].stat.exists)"
+
+- name: Add heketi.service to systemd
+  copy:
+    src: heketi.service
+    dest: /etc/systemd/system/heketi.service
+    mode: 0644
+    owner: root
+    group: root
+  notify: systemctl daemon-reload
+
+- name: Create user heketi
+  user:
+    name: heketi
+    system: true
+    generate_ssh_key: yes
+    ssh_key_file: .ssh/id_rsa
+    ssh_key_bits: 2048
+
+- name: Crete env vars for heketi
+  blockinfile:
+    dest: /home/heketi/.bashrc
+    block: |
+      export HEKETI_CLI_USER=admin
+      export HEKETI_CLI_KEY={{ heketi_setup_adminjwt }}
+      export HEKETI_CLI_SERVER=http://localhost:{{ heketi_port }}
+
+- name: Retreive the pubkey from server
+  slurp:
+    src: /home/heketi/.ssh/id_rsa.pub
+  register: ssh_pubkey
+
+- name: Push the pubkey on hosts from glusterfs group
+  authorized_key:
+    user: "{{ heketi_setup_sshuser }}"
+    state: present
+    key: "{{ ssh_pubkey.content | b64decode }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups[heketi_glusterfs_group] }}"
+
+- name: Install thin_check command on hosts from glusterfs group
+  package:
+    name: device-mapper-persistent-data
+    state: present
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups[heketi_glusterfs_group] }}"
+
+- name: Create heketi directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: heketi
+    group: root
+  with_items:
+    - /etc/heketi
+    - /var/lib/heketi/db
+
+- name: Push heketi configuration file
+  template:
+    src: heketi.json.j2
+    dest: /etc/heketi/heketi.json
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart heketi
+
+- name: Heketi log configuration
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: "heketi.conf", dest: "/etc/rsyslog.d/{{ heketi_rsyslog_number }}-heketi.conf" }
+    - { src: "heketi-rotate", dest: "/etc/logrotate.d/heketi" }
+  notify: restart rsyslog
+
+- meta: flush_handlers
+
+- name: Heketi should be started and enabled
+  service:
+    name: heketi
+    state: started
+    enabled: true
+  when: inventory_hostname == groups[heketi_glusterfs_group][0]
+
+- name: Push topology
+  copy:
+    src: "heketi/topology-{{ plateform_env }}.json"
+    dest: "/etc/heketi/topology.json"
+  register: topology
+  when: inventory_hostname == groups[heketi_glusterfs_group][0]
+
+- name: Load topology
+  shell: "heketi-cli topology load --json=/etc/heketi/topology.json"
+  environment:
+    HEKETI_CLI_USER: "admin"
+    HEKETI_CLI_KEY: "{{ heketi_setup_adminjwt }}"
+    HEKETI_CLI_SERVER: "http://localhost:{{ heketi_port }}"
+  when:
+    - topology | changed
+    - inventory_hostname == groups[heketi_glusterfs_group][0]
+
+- name: Check volume heketi
+  gluster_volume:
+    name: heketidbstorage
+    state: started
+  register: glustervolume
+  when: inventory_hostname == groups[heketi_glusterfs_group][0]
+  ignore_errors: true
+
+- name: Create heketi volume
+  shell: "heketi-cli volume create --size=2 --name=heketidbstorage"
+  environment:
+    HEKETI_CLI_USER: "admin"
+    HEKETI_CLI_KEY: "{{ heketi_setup_adminjwt }}"
+    HEKETI_CLI_SERVER: "http://localhost:{{ heketi_port }}"
+  when:
+    - inventory_hostname == groups[heketi_glusterfs_group][0]
+    - glustervolume | failed
+
+- name: Stop Heketi
+  service:
+    name: heketi
+    state: stopped
+    enabled: true
+  when:
+    - glustervolume | failed
+
+- name: Backup heketi db
+  copy:
+    src: /var/lib/heketi/db/heketi.db
+    dest: /tmp/heketi.db
+    remote_src: true
+  when:
+    - glustervolume | failed
+
+- name: Remove heketi db
+  file:
+    path: /var/lib/heketi/db/heketi.db
+    state: absent
+  when:
+    - glustervolume | failed
+
+- name: Mount heketi volume
+  mount:
+    path: /var/lib/heketi/db
+    src: "{{ ansible_host }}:/heketidbstorage"
+    fstype: glusterfs
+    state: mounted
+
+- name: Copy heketi db
+  copy:
+    src: /tmp/heketi.db
+    dest: /var/lib/heketi/db/heketi.db
+    owner: heketi
+    group: heketi
+    remote_src: true
+  when:
+    - inventory_hostname == groups[heketi_glusterfs_group][0]
+    - glustervolume | failed
+
+- name: Heketi should be started and enabled
+  service:
+    name: heketi
+    state: started
+    enabled: true
+  when:
+    - inventory_hostname == groups[heketi_glusterfs_group][0]

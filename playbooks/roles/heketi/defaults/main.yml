@@ -1,0 +1,11 @@
+heketi_version: v5.0.0
+heketi_download_url: "https://github.com/heketi/heketi/releases/download/{{ heketi_version }}/heketi-{{ heketi_version }}.linux.amd64.tar.gz"
+
+heketi_glusterfs_group: glusterfs
+heketi_port: 8080
+heketi_configure_log: false
+heketi_rsyslog_number: 44
+heketi_setup_adminjwt: "faketoken"
+heketi_setup_userjwt: "faketoken"
+heketi_setup_sshuser: "root"
+heketi_setup_useauth: false
