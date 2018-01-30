@@ -1,0 +1,5 @@
+- include: server.yml
+  when: not glusterfs_client_only
+
+- include: client.yml
+  when: glusterfs_client_only

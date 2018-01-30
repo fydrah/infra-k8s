@@ -1,0 +1,35 @@
+---
+
+# Service on Debian
+
+- name: rpcbind-started
+  systemd:
+    name: rpcbind
+    state: started
+    enabled: true
+
+- name: glusterfs-started
+  systemd:
+    name: glusterfs-server
+    state: started
+    enabled: true
+
+- name: glusterfs-restarted
+  systemd:
+    name: glusterfs-server
+    state: restarted
+    enabled: true
+
+# Service on CentOS
+
+- name: glusterd-started
+  systemd:
+    name: glusterd
+    state: started
+    enabled: true
+
+- name: glusterd-restarted
+  systemd:
+    name: glusterd
+    state: restarted
+    enabled: true

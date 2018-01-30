@@ -1,0 +1,17 @@
+---
+# tasks file for haproxy-k8s
+
+- name: Install haproxy
+  package:
+    name: haproxy
+    state: latest
+  notify: haproxy-started
+
+- name: Configure k8s API
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    owner: root
+    group: root
+  notify: haproxy-reloaded

@@ -1,0 +1,55 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log         127.0.0.1 local2     #Log configuration
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy             #Haproxy running under user and group "haproxy"
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    tcp
+    log                     global
+    option                  tcp-check
+    option                  dontlognull
+    retries                 3
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout check           10s
+    maxconn                 3000
+
+#---------------------------------------------------------------------
+#HAProxy Monitoring Config
+#---------------------------------------------------------------------
+#listen haproxy3-monitoring *:38080                #Haproxy Monitoring run on port 8080
+#    mode http
+#    option forwardfor
+#    option httpclose
+#    stats enable
+#    stats show-legends
+#    stats refresh 5s
+#    stats uri /stats                             #URL for HAProxy monitoring
+#    stats realm Haproxy\ Statistics
+#    stats auth howtoforge:howtoforge            #User and Password for login to the monitoring dashboard
+#    stats admin if TRUE
+#    default_backend app-main                    #This is optionally for monitoring backend
+
+listen k8sapi
+    bind *:8443
+    balance leastconn
+{% for host in play_hosts %}
+    server {{ hostvars[host].ansible_hostname }} {{ hostvars[host].ansible_default_ipv4.address }}:6443 check
+
+{% endfor %}

@@ -1,0 +1,5 @@
+# This can be used to select a specific probe interface
+#glusterfs_interface_fact: "ansible_ens3"
+glusterfs_default_brick: "/data/brick"
+glusterfs_volumes: []
+glusterfs_client_only: false

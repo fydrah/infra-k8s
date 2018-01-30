@@ -1,0 +1,12 @@
+glusterfs_repo_debian: "ppa:gluster/glusterfs-3.10"
+glusterfs_repo_centos:
+  - centos-release-gluster310
+  - glusterfs
+  - glusterfs-cli
+  - glusterfs-libs
+  - glusterfs-server
+
+glusterfs_repo_centos_client:
+  - centos-release-gluster310
+  - glusterfs-cli
+  - glusterfs-fuse

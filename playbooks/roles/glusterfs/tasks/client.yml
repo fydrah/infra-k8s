@@ -1,0 +1,23 @@
+---
+- block:
+  - name: "Debian Install stable ppa for Glusterfs"
+    apt_repository:
+      repo: "{{ glusterfs_repo_debian }}"
+      state: present
+
+  - name: "Debian Install glusterfs"
+    package:
+      name: glusterfs-cli
+      state: present
+      update_cache: true
+
+  when: ansible_os_family == 'Debian'
+
+
+- name: "Centos : Install GlusterFS"
+  package:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ glusterfs_repo_centos_client }}"
+  when: ansible_os_family == 'RedHat'

@@ -1,0 +1,13 @@
+---
+# handlers file for haproxy-k8s
+- name: haproxy-started
+  systemd:
+    name: haproxy
+    state: started
+    enabled: true
+
+- name: haproxy-reloaded
+  systemd:
+    name: haproxy
+    state: reloaded
+    enabled: true
