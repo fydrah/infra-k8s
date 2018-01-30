@@ -1,0 +1,17 @@
+apiVersion: rook.io/v1alpha1
+kind: Cluster
+metadata:
+  name: rook
+  namespace: rook
+spec:
+  versionTag: master
+  dataDirHostPath: /var/lib/rook
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    storeConfig:
+      storeType: filestore
+      databaseSizeMB: 1024
+      journalSizeMB: 1024
+    directories:
+    - path: /var/lib/osd
