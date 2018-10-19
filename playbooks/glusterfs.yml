@@ -1,11 +1,6 @@
 #!/usr/bin/env ansible-playbook
 
 - hosts: cluster
-  pre_tasks:
-  - include_vars: conf/plain-vars.yml
-    tags: always
-  - include_vars: conf/encrypt-vars.yml
-    tags: always
   roles:
   - role: glusterfs
     tags: [ glusterfs ]

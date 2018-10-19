@@ -2,6 +2,7 @@ vrrp_instance vrrp_cluster {
   interface eth0
   state BACKUP
   virtual_router_id 1
+  nopreempt
   priority {{ 100+play_hosts.index(inventory_hostname) }}
   authentication {
     auth_type PASS

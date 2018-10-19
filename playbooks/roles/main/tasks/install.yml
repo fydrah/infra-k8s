@@ -1,0 +1,59 @@
+- name: Install epel and openstack repositories
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - epel-release
+    - centos-release-openstack-rocky
+  tags: [ovs, kvm]
+
+- name: Install openvswitch packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  with_items:
+    - openvswitch
+    - python2-pip
+  notify:
+    - restart openvswitch
+  tags: [ovs]
+
+- name: Install os-net-config
+  pip:
+    name: os-net-config
+  tags: [ovs]
+
+- name: Install QEMU/KVM packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  with_items:
+    - qemu-kvm-ev
+    - libvirt
+    - libvirt-daemon-kvm
+    - libvirt-python
+    - libguestfs-tools
+    - genisoimage
+    - python-lxml
+  notify:
+    - restart libvirtd
+  tags: [kvm]
+
+- name: Make sure openvswitch is started
+  systemd:
+    name: openvswitch
+    state: started
+    enabled: true
+  tags: [ovs]
+
+- name: Make sure NetworkManager is stopped and disabled
+  systemd:
+    name: NetworkManager
+    state: stopped
+    enabled: false
+  tags: [ovs]
+
+- meta: flush_handlers
+  tags: [ovs, kvm]

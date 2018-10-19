@@ -1,6 +1,11 @@
 #!/usr/bin/env ansible-playbook
 
+- hosts: all
+  become: true
+  tasks:
+    - setup:
+
 - hosts: main
   become: true
   roles:
-  - iptables-persistent
+    - role: haproxy

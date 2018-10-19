@@ -12,7 +12,7 @@
 {% if rule.type == "empty" %}
 -A INPUT -j {{ rule.target }}
 {% elif rule.type == "protocol" %}
--A INPUT -p {{ rule.proto }} -m {{ rule.proto }} --dport {{ rule.port }} -j {{ rule.target }}
+-A INPUT -p {{ rule.proto }} -m {{ rule.proto }}{% if rule.iface is defined %} -i {{ rule.iface }}{% endif %} --dport {{ rule.port }} -j {{ rule.target }}
 {% elif rule.type == "ip" %}
 -A INPUT -s {{ rule.ip }} -j {{ rule.target }}
 {% endif %}
@@ -22,4 +22,13 @@
 {% for rule in iptables_forward_rules %}
 {% endfor %}
 -A INPUT -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+{% for rule in iptables_snat_rules %}
+-A POSTROUTING -s {{ rule.source }} ! -d {{ rule.source }} -j SNAT --to-source {{ rule.to_source }}
+{% endfor %}
 COMMIT

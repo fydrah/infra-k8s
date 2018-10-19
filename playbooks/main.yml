@@ -1,0 +1,11 @@
+#!/usr/bin/env ansible-playbook
+
+- hosts: main
+  become: true
+  roles:
+    - role: shell
+      tags: [ shell ]
+    - role: main
+      tags: [ openvswitch, ovs]
+    - role: vms
+      tags: [ vms, virt ]

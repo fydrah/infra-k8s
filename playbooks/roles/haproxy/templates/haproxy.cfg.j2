@@ -46,10 +46,10 @@ defaults
 #    stats admin if TRUE
 #    default_backend app-main                    #This is optionally for monitoring backend
 
-listen k8sapi
-    bind *:8443
+listen kubeapi
+    bind *:6443
     balance leastconn
-{% for host in play_hosts %}
+{% for host in groups[haproxy_kube_group_name] %}
     server {{ hostvars[host].ansible_hostname }} {{ hostvars[host].ansible_default_ipv4.address }}:6443 check
 
 {% endfor %}

@@ -1,0 +1,21 @@
+#cloud-config
+
+# Hostname management
+preserve_hostname: False
+hostname: {{ item.name }}
+fqdn: {{ item.name }}.fydrah.local
+
+runcmd:
+  - [ systemctl, status, network ]
+  - [ ip, a ]
+
+# Configure where output will go
+output: 
+  all: ">> /var/log/cloud-init.log"
+
+# configure interaction with ssh server
+ssh_svcname: ssh
+ssh_deletekeys: True
+ssh_genkeytypes: ['rsa', 'ecdsa']
+ssh_authorized_keys:
+  {{ main_ssh_keys | to_nice_yaml }}

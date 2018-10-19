@@ -1,0 +1,17 @@
+- name: restart openvswitch
+  systemd:
+    name: openvswitch
+    state: restarted
+    enabled: true
+
+- name: restart libvirtd
+  systemd:
+    name: libvirtd
+    state: restarted
+    enabled: true
+
+- name: restart dnsmasq
+  systemd:
+    name: dnsmasq
+    state: restarted
+    enabled: true

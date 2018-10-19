@@ -1,0 +1,62 @@
+- name: Create host folder
+  file:
+    name: "{{ main_libvirt_image_dir }}/{{ item.name }}"
+    mode: 0755
+    owner: root
+    group: root
+    state: directory
+  with_items: "{{ main_libvirt_hosts }}"
+
+- name: Create disk images
+  shell: "qemu-img create -f qcow2 -b {{ main_libvirt_image_base_dir }}/{{ item.image }}.qcow2 {{ main_libvirt_image_dir }}/{{ item.name }}/disk {{ item.size }}"
+  args:
+    creates: "{{ main_libvirt_image_dir }}/{{ item.name }}/disk"
+  with_items: "{{ main_libvirt_hosts }}"
+
+- name: Create additional disks
+  shell: "qemu-img create -f raw {{ main_libvirt_image_dir }}/{{ item.0.name }}/{{ item.1.name }} {{ item.1.size }}"
+  args:
+    creates: "{{ main_libvirt_image_dir }}/{{ item.0.name }}/{{ item.1.name }}"
+  with_subelements:
+    - "{{ main_libvirt_hosts }}"
+    - disks
+
+- name: Create user-data
+  template:
+    src: user-data
+    dest: "{{ main_libvirt_image_dir }}/{{ item.name }}/user-data"
+    mode: 0644
+    owner: root
+    group: root
+  with_items: "{{ main_libvirt_hosts }}"
+  register: user_data_updated
+  tags:
+    - user-data
+
+- name: Create meta-data
+  template:
+    src: meta-data
+    dest: "{{ main_libvirt_image_dir }}/{{ item.name }}/meta-data"
+    mode: 0644
+    owner: root
+    group: root
+  with_items: "{{ main_libvirt_hosts }}"
+  register: meta_data_updated
+
+- name: Generate cloudconfig iso
+  shell: "genisoimage -output {{ main_libvirt_image_dir }}/{{ item.name }}/cloudconfig.iso -volid cidata -joliet -r {{ main_libvirt_image_dir }}/{{ item.name }}/user-data {{ main_libvirt_image_dir }}/{{ item.name }}/meta-data &>> {{ main_libvirt_image_dir }}/{{ item.name }}/cloudconfig.log"
+  when: (user_data_updated | changed) and (meta_data_updated | changed)
+  with_items: "{{ main_libvirt_hosts }}"
+
+- name: Define host
+  virt:
+    name: "{{ item.name }}"
+    command: define
+    xml: "{{ lookup('template', 'host.xml') }}"
+  with_items: "{{ main_libvirt_hosts }}"
+
+- name: Start host
+  virt:
+    name: "{{ item.name }}"
+    state: running
+  with_items: "{{ main_libvirt_hosts }}"

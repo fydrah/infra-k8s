@@ -1,0 +1,6 @@
+<network>
+  <name>{{ main_libvirt_network_name }}</name>
+  <forward mode='bridge'/>
+  <bridge name='{{ main_libvirt_bridge_name }}'/>
+  <virtualport type='openvswitch'/>
+</network>

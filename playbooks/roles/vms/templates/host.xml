@@ -1,0 +1,64 @@
+<domain type="kvm">
+  <name>{{ item.name }}</name>
+  <memory unit='MiB'>{{ item.ram }}</memory>
+  <currentMemory unit='MiB'>{{ item.ram }}</currentMemory>
+  <vcpu>{{ item.cpu }}</vcpu>
+  <os>
+    <type arch="x86_64">hvm</type>
+    <boot dev="hd"/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode="host-model"/>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2"/>
+      <source file="{{ main_libvirt_image_dir }}/{{ item.name }}/disk"/>
+      <target dev="vda" bus="virtio"/>
+    </disk>
+{% for disk in item.disks %}
+    <disk type="file" device="disk">
+      <driver name="qemu" type="raw"/>
+      <source file="{{ main_libvirt_image_dir }}/{{ item.name }}/{{ disk.name }}"/>
+      <target dev="{{ disk.dev_target }}" bus="virtio"/>
+    </disk>
+{% endfor %}
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="{{ main_libvirt_image_dir }}/{{ item.name }}/cloudconfig.iso"/>
+      <target dev="hda" bus="ide"/>
+      <readonly/>
+    </disk>
+    <interface type="bridge">
+      <mac address="{{ item.mac }}"/>
+      <source bridge="br-int"/>
+      <virtualport type='openvswitch'/>
+    </interface>
+    <serial type='file'>
+      <source path='{{ main_libvirt_image_dir }}/{{ item.name }}/console.log'/>
+      <target type='isa-serial' port='0'>
+        <model name='isa-serial'/>
+      </target>
+    </serial>
+    <serial type='pty'>
+      <target type='isa-serial' port='1'>
+        <model name='isa-serial'/>
+      </target>
+    </serial>
+    <console type='file'>
+      <source path='{{ main_libvirt_image_dir }}/{{ item.name }}/console.log'/>
+      <target type='serial' port='0'/>
+    </console>
+    <graphics type="vnc" port="-1"/>
+  </devices>
+</domain>

@@ -1,0 +1,43 @@
+- name: Create os-net-config directory
+  file:
+    dest: /etc/os-net-config
+    mode: 0755
+    owner: root
+    group: root
+    state: directory
+
+- name: Generate network configuration
+  copy:
+    src: "{{ main_os_net_config_file }}"
+    dest: /etc/os-net-config/config.yaml
+    owner: root
+    group: root
+    mode: 0644
+    validate: /bin/os-net-config -c %s --noop --exit-on-validation-errors
+  register: os_net_config_task
+
+- name: IP forwarding
+  sysctl:
+    name: net.ipv4.conf.all.forwarding
+    value: 1
+    state: present
+
+- name: Apply os-net-config configuration
+  shell: "/bin/os-net-config -c /etc/os-net-config/config.yaml --cleanup"
+  when: os_net_config_task | changed
+
+- name: Create Libvirt network
+  virt_net:
+    command: define
+    name: "{{ main_libvirt_network_name }}"
+    xml: "{{ lookup('template', 'network.xml') }}"
+
+- name: Autostart Libvirt network
+  virt_net:
+    autostart: true
+    name: "{{ main_libvirt_network_name }}"
+
+- name: Start Libvirt network
+  virt_net:
+    state: active
+    name: "{{ main_libvirt_network_name }}"

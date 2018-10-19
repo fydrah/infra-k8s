@@ -1,0 +1,12 @@
+instance-id: {{ item.name }}
+network-interfaces: |
+  auto eth0
+  iface eth0 inet static
+  address {{ item.ip | ipaddr('address') }}
+  network {{ item.ip | ipaddr('network') }}
+  netmask {{ item.ip | ipaddr('netmask') }}
+  broadcast {{ item.ip | ipaddr('broadcast') }}
+  gateway {{ item.ip | ipaddr('1') | ipaddr('address') }}
+  dns-nameservers {{ item.dns }}
+  up route add default gw {{ item.ip | ipaddr('1') | ipaddr('address') }}
+local-hostname: {{ item.name }}

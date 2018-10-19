@@ -1,0 +1,8 @@
+main_os_net_config_file: ""
+
+main_dhcp_interface: br-int
+main_dhcp_listen_ip: 10.20.30.1
+main_dhcp_range:
+    start: 10.20.30.20
+    end: 10.20.30.30
+

@@ -10,6 +10,7 @@
     mode: 0644
   with_items:
     - 10-dockerd
+    - 11-kubelet
   notify:
     - restart-rsyslog
 
@@ -22,3 +23,4 @@
     mode: 0644
   with_items:
     - dockerd
+    - kubelet
